@@ -12,29 +12,28 @@ pipeline {
             }
             steps {
                 echo "The responsible of this project is ${AUTHOR} and will be deployed in ${ENVIRONMENT}"
-                // Elimina el directorio previo si existe
-                sh 'rm -rf /home/jenkins/web'
-                // Crea la ruta completa incluyendo carpetas padre intermedias
-                sh 'mkdir -p /home/jenkins/web'
+                // Trabajar dentro del workspace de Jenkins evita problemas de permisos
+                sh 'rm -rf ./web_dir'
+                sh 'mkdir -p ./web_dir'
             }
         }
         stage('Drop the Apache HTTPD Docker container') {
             steps {
                 echo 'Droping the container...'
-                // '|| true' evita que el pipeline falle si el contenedor aún no existe
                 sh 'docker rm -f apache1 || true'
             }
         }
         stage('Create the Apache httpd container') {
             steps {
                 echo 'Creating the container...'
-                sh 'docker run -dit --name apache1 -p 9000:80 -v /home/jenkins/web:/usr/local/apache2/htdocs/ httpd'
+                // Se mapea la ruta absoluta del workspace actual (${WORKSPACE}/web_dir)
+                sh 'docker run -dit --name apache1 -p 9000:80 -v ${WORKSPACE}/web_dir:/usr/local/apache2/htdocs/ httpd'
             }
         }
         stage('Copy the web application to the container directory') {
             steps {
                 echo 'Copying web application...'             
-                sh 'cp -r web/* /home/jenkins/web'
+                sh 'cp -r web/* ./web_dir/'
             }
         }
         stage('Checking the app') {
