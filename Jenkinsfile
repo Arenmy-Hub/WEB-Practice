@@ -25,8 +25,7 @@ pipeline {
         stage('Create the Apache httpd container') {
             steps {
                 echo 'Creating the container...'
-                // Nótese las comillas alrededor de "${WORKSPACE}/web_dir"
-                sh 'docker run -dit --name apache1 -p 9000:80 -v "${WORKSPACE}/web_dir":/usr/local/apache2/htdocs/ httpd'
+                sh "docker run -dit --name apache1 -p 9000:80 -v \"${WORKSPACE}/web_dir\":/usr/local/apache2/htdocs/ httpd"
             }
         }
         stage('Copy the web application to the container directory') {
@@ -38,7 +37,8 @@ pipeline {
         stage('Checking the app') {
             steps {
                 echo 'Testing the web app'
-                sh 'wget http://localhost:9000'
+                // Usa curl en lugar de wget dentro de httpd
+                sh 'docker exec apache1 curl -I http://localhost:80'
             }
         }        
     }
