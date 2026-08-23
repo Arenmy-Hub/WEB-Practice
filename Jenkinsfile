@@ -37,8 +37,11 @@ pipeline {
         stage('Checking the app') {
             steps {
                 echo 'Testing the web app'
-                // Usa curl en lugar de wget dentro de httpd
-                sh 'docker exec apache1 curl -I http://localhost:80'
+                // Obtiene la IP interna del contenedor apache1 y le hace wget desde Jenkins
+                sh '''
+                    CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' apache1)
+                    wget -qO- http://${CONTAINER_IP}:80
+                '''
             }
         }        
     }
